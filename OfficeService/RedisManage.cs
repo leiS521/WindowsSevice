@@ -12,8 +12,7 @@ namespace OfficeService
 {
 	public class RedisManager
 	{
-		#region
-		/// init
+		#region init
 		private IDatabase db;
 		private ISubscriber sub;
 		private RedisConnectionStringElement config;
@@ -27,6 +26,11 @@ namespace OfficeService
 			server = redis.GetServer(config.ConnectionString, config.Port);
 		}
 
+		/// <summary>
+		/// 获取连接字符串
+		/// </summary>
+		/// <param name="configName"></param>
+		/// <returns></returns>
 		private string GetConnectionString(string configName)
 		{
 			var a = ((YuanXinRedisConfigSettings)ConfigurationManager.GetSection("yuanxinRedisSettings")).ConnectionOptions[configName];
@@ -37,7 +41,6 @@ namespace OfficeService
 			{
 				conectionString.AppendFormat(@",password={0},ConnectTimeout=10000,abortConnect=false", config.PassWord);
 			}
-
 			return conectionString.ToString();
 		}
 
@@ -51,208 +54,12 @@ namespace OfficeService
 		}
 		#endregion
 
-		#region
-		///已过期的方法
 		/// <summary>
-		/// 保存到redis
+		/// 序列化
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
-		/// <param name="key">key</param>
-		/// <param name="t">对象</param>
+		/// <param name="data"></param>
 		/// <returns></returns>
-		[Obsolete("StringSetAsync")]
-		public bool Save<T>(string key, T t)
-		{
-			return this.Save<T>(key, t, null);
-		}
-		/// <summary>
-		/// 保存到redis
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="key">key</param>
-		/// <param name="t">对象</param>
-		/// <param name="expiredTime">过期时间</param>
-		/// <returns></returns>
-		[Obsolete("StringSetAsync")]
-		public bool Save<T>(string key, T t, Nullable<TimeSpan> expiredTime)
-		{
-			RedisValue rValue = this.Serialize(t);
-			if (!rValue.IsNullOrEmpty)
-			{
-				return this.db.StringSet(key, rValue, expiredTime);
-			}
-			return false;
-		}
-
-		[Obsolete("StringGetAsync")]
-		public T Get<T>(string key)
-		{
-			if (!string.IsNullOrEmpty(key))
-			{
-				RedisValue reValue = this.db.StringGet(key); ;
-				if (!reValue.IsNullOrEmpty)
-				{
-					return this.DeSerialize<T>(reValue);
-				}
-			}
-			return default(T);
-		}
-		[Obsolete("")]
-
-		public byte[] Get(string key)
-		{
-			if (!string.IsNullOrEmpty(key))
-			{
-				RedisValue reValue = this.db.StringGet(key); ;
-				if (!reValue.IsNullOrEmpty)
-				{
-					return reValue;
-				}
-			}
-			return null;
-		}
-		/// <summary>
-		/// 重命名
-		/// </summary>
-		/// <param name="oldKey"></param>
-		/// <param name="newKey"></param>
-		/// <returns></returns>
-		public bool ReNameNx(string oldKey, string newKey)
-		{
-			return db.KeyRename(oldKey, newKey);
-		}
-
-		/// <summary>
-		/// 检测key是否存在
-		/// </summary>
-		/// <param name="key"></param>
-		/// <returns></returns>
-		[Obsolete("KeyExistsAsync")]
-		public bool HasKey(string key)
-		{
-			return db.KeyExists(key);
-		}
-		/// <summary>
-		/// 检测是否过期
-		/// </summary>
-		/// <param name="key"></param>
-		/// <returns></returns>
-		[Obsolete("KeyTimeToLiveAsync")]
-		public bool IsTtl(string key)
-		{
-			TimeSpan? keyTime = this.db.KeyTimeToLive(key);
-			if (keyTime.HasValue)
-			{
-				return keyTime.Value.Seconds > 0;
-			}
-
-			return false;
-		}
-		/// <summary>
-		/// 删除指定管理
-		/// </summary>
-		/// <param name="key"></param>
-		/// <returns></returns>
-		[Obsolete("DeleteKeyAsync")]
-		public bool Delete(string key)
-		{
-			return this.db.KeyDelete(key);
-		}
-		/// <summary>
-		/// 添加一个项到内部的List
-		/// </summary>
-		/// <param name="key"></param>
-		/// <param name="value"></param>
-		[Obsolete("AddItemToListAsync")]
-		public void AddItemToList<T>(string key, T value)
-		{
-			RedisValue rdValue = this.Serialize(value);
-			this.db.ListRightPush(key, rdValue);
-			//todo:ydz
-			// _redisClient.AddItemToList(key, value);
-		}
-
-		[Obsolete("KeyExpireAsync")]
-		public bool SetExpireByKey(string key, int seconds)
-		{
-			return this.db.KeyExpire(key, TimeSpan.FromSeconds(seconds));
-		}
-		[Obsolete("DeleteKeyAsync")]
-		public Task<bool> DeleteAll(List<string> keys)
-		{
-			var tran = db.CreateTransaction();
-			foreach (var key in keys)
-			{
-				tran.KeyDeleteAsync(key);
-			}
-			return tran.ExecuteAsync();
-		}
-		[Obsolete("GetAllItemsFromListAsync")]
-		public List<T> GetAllItemsFromList<T>(string key)
-		{
-			List<T> items = new List<T>();
-			RedisValue[] values = this.db.ListRangeAsync(key).Result;
-			if (values.Length > 0)
-			{
-				foreach (RedisValue item in values)
-				{
-					items.Add(this.DeSerialize<T>(item));
-				}
-			}
-			return items;
-		}
-		/// <summary>
-		/// Removes and returns the first element of the list stored at key.
-		/// </summary>
-		/// <param name="key"></param>
-		/// <returns></returns>
-		[Obsolete("ListLeftPopAsync")]
-		public string ListLeftPop(string key)
-		{
-			return db.ListLeftPopAsync(key).Result;
-		}
-		[Obsolete("ListLengthAsync")]
-		public int ListLength(string key)
-		{
-			return Convert.ToInt32(db.ListLength(key));
-		}
-		[Obsolete("HashSetAsync(RedisKey key, RedisValue[] fields, RedisValue[] values)")]
-		public Task<bool> HashSetAsync(string key, string[] fields, int[] values)
-		{
-			var tran = db.CreateTransaction(true);
-			for (var i = 0; i < fields.Length; i++)
-			{
-				tran.HashSetAsync(key, fields[i], values[i]);
-			}
-			return tran.ExecuteAsync();
-		}
-		[Obsolete("PublishAsync")]
-		public Task<bool> PushMessageAsync(string channel, string[] messgae)
-		{
-			var tran = db.CreateTransaction(true);
-			foreach (var item in messgae)
-			{
-				log("PushMessageAsync:" + item);
-				tran.PublishAsync(channel, item);
-			}
-			return tran.ExecuteAsync();
-		}
-		private void log(string msg)
-		{
-			StreamWriter sw1 = File.AppendText(@"D:\WebApp\YuanXinIM\redis.txt");
-			string w1 = msg + "\r\n";
-			sw1.Write(w1);
-			sw1.Close();
-		}
-		public Task<bool> PushMessageAsync(string channel, string messgae)
-		{
-			var tran = db.CreateTransaction(true);
-
-			tran.PublishAsync(channel, messgae);
-
-			return tran.ExecuteAsync();
-		}
-		//todo：此处应该将序列化抽到外部处理
 		public RedisValue Serialize<T>(T data)
 		{
 			using (MemoryStream ms = new MemoryStream())
@@ -261,6 +68,13 @@ namespace OfficeService
 				return ms.ToArray();
 			}
 		}
+
+		/// <summary>
+		/// 反序列化
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <returns></returns>
 		public T DeSerialize<T>(RedisValue value)
 		{
 			using (MemoryStream ms = new MemoryStream(value))
@@ -268,10 +82,9 @@ namespace OfficeService
 				return Serializer.Deserialize<T>(ms);
 			}
 		}
-		#endregion
 
 		/// <summary>
-		/// Save数据
+		/// Save String Data
 		/// </summary>
 		/// <param name="keys"></param>
 		/// <param name="values"></param>
@@ -287,7 +100,7 @@ namespace OfficeService
 		}
 
 		/// <summary>
-		/// 获取数据
+		/// Get String Data
 		/// </summary>
 		/// <param name="keys"></param>
 		/// <param name="values"></param>
@@ -302,9 +115,8 @@ namespace OfficeService
 				return null;
 		}
 
-
 		/// <summary>
-		/// Save数据
+		/// Save String Data
 		/// </summary>
 		/// <param name="keys"></param>
 		/// <param name="values"></param>
@@ -329,8 +141,9 @@ namespace OfficeService
 			}
 			return tran.ExecuteAsync();
 		}
+
 		/// <summary>
-		/// 取数据
+		///Get String Data
 		/// </summary>
 		/// <param name="key"></param>
 		/// <returns></returns>
@@ -338,6 +151,7 @@ namespace OfficeService
 		{
 			return db.StringGetAsync(key);
 		}
+
 		/// <summary>
 		/// 检测key是否过期
 		/// </summary>
@@ -347,6 +161,7 @@ namespace OfficeService
 		{
 			return db.KeyExistsAsync(key);
 		}
+
 		/// <summary>
 		/// 设置key过期时间
 		/// </summary>
@@ -357,6 +172,7 @@ namespace OfficeService
 			TimeSpan? keyTime = db.KeyTimeToLiveAsync(key).Result;
 			return keyTime.HasValue ? Task.FromResult(keyTime.Value.Seconds > 0) : Task.FromResult(false);
 		}
+
 		/// <summary>
 		/// 删除指定key
 		/// </summary>
@@ -371,6 +187,7 @@ namespace OfficeService
 			}
 			return tran.ExecuteAsync();
 		}
+
 		/// <summary>
 		/// 添加项到list
 		/// </summary>
@@ -387,6 +204,7 @@ namespace OfficeService
 			}
 			return tran.ExecuteAsync();
 		}
+
 		/// <summary>
 		/// 设置key过期时间
 		/// </summary>
@@ -397,6 +215,7 @@ namespace OfficeService
 		{
 			return db.KeyExpireAsync(key, expiredTime);
 		}
+
 		/// <summary>
 		/// 取list里的项,(项还是存在只是取值)
 		/// </summary>
@@ -406,6 +225,7 @@ namespace OfficeService
 		{
 			return db.ListRangeAsync(key);
 		}
+
 		/// <summary>
 		///  取list里的项
 		/// </summary>
@@ -415,6 +235,7 @@ namespace OfficeService
 		{
 			return db.ListLeftPopAsync(key);
 		}
+
 		/// <summary>
 		/// 查看list长度
 		/// </summary>
@@ -424,8 +245,9 @@ namespace OfficeService
 		{
 			return db.ListLengthAsync(key);
 		}
+
 		/// <summary>
-		/// hashset
+		/// Save HashSet Data
 		/// </summary>
 		/// <param name="key"></param>
 		/// <param name="fields"></param>
@@ -440,8 +262,9 @@ namespace OfficeService
 			}
 			return tran.ExecuteAsync();
 		}
+
 		/// <summary>
-		/// hashset
+		/// Save HashSet Data
 		/// </summary>
 		/// <param name="key"></param>
 		/// <param name="fields"></param>
@@ -453,6 +276,7 @@ namespace OfficeService
 			tran.HashSetAsync(key, fields, values);
 			return tran.ExecuteAsync();
 		}
+
 		/// <summary>
 		/// 向指定键的字段，增加指定值
 		/// </summary>
@@ -466,6 +290,7 @@ namespace OfficeService
 			tran.HashIncrementAsync(key, fields, values);
 			return tran.ExecuteAsync();
 		}
+
 		/// <summary>
 		/// HashGetAsync
 		/// </summary>
@@ -476,20 +301,37 @@ namespace OfficeService
 		{
 			return db.HashGetAsync(key, fields);
 		}
+
+		/// <summary>
+		/// HashGetAsync
+		/// </summary>
+		/// <param name="key"></param>
+		/// <param name="fields"></param>
+		/// <returns></returns>
 		public Task<RedisValue[]> HashGetAsync(RedisKey key, RedisValue[] fields)
 		{
 			return db.HashGetAsync(key, fields);
 		}
 
+		/// <summary>
+		/// HashGetAllAsync
+		/// </summary>
+		/// <param name="key"></param>
+		/// <returns></returns>
 		public Task<HashEntry[]> HashGetAllAsync(RedisKey key)
 		{
 			return db.HashGetAllAsync(key);
 		}
 
+		/// <summary>
+		/// GetAllKeys
+		/// </summary>
+		/// <returns></returns>
 		public List<RedisKey> GetAllKeys()
 		{
 			return server.Keys(config.DB).ToList();
 		}
+
 		/// <summary>
 		/// redis发布消息到指定频道
 		/// </summary>
