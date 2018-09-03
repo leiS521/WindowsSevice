@@ -5,12 +5,10 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using StackExchange.Redis;
-using static Seagull2.YuanXin.WebApi.ViewsModel.TaskManage.TaskManageViewModel;
 using System.Net;
 using System.IO;
 using log4net;
 using System.Reflection;
-using Seagull2.YuanXin.WebApi.Extensions;
 
 namespace OfficeService
 {
@@ -135,5 +133,25 @@ namespace OfficeService
 			Valid = 2
 		}
 
+		/// <summary>
+		/// RedisViewModel
+		/// </summary>
+		public class RedisViewModel
+		{
+			/// <summary>
+			/// 任务编码
+			/// </summary>
+			public string Code { get; set; }
+
+			/// <summary>
+			/// 提醒时间
+			/// </summary>
+			public string RemindTime { get; set; }
+
+			/// <summary>
+			/// 提醒字符串
+			/// </summary>
+			public string RemindStr { get; set; }
+		}
 	}
 }

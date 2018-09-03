@@ -56,13 +56,6 @@
     <Reference Include="protobuf-net, Version=2.3.14.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
       <HintPath>..\packages\protobuf-net.2.3.14\lib\net40\protobuf-net.dll</HintPath>
     </Reference>
-    <Reference Include="Seagull2.Redis">
-      <HintPath>..\packages\Seagull2.Redis.2.0.0\lib\net45\Seagull2.Redis.dll</HintPath>
-    </Reference>
-    <Reference Include="Seagull2.YuanXin.WebApi, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\CompanyProjects\MCSFramework\02.Develop\MobileWebApp\Seagull2\WebApi\Seagull2.YuanXin.WebApi\bin\Seagull2.YuanXin.WebApi.dll</HintPath>
-    </Reference>
     <Reference Include="StackExchange.Redis, Version=1.2.6.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\StackExchange.Redis.1.2.6\lib\net46\StackExchange.Redis.dll</HintPath>
     </Reference>
@@ -90,6 +83,7 @@
     <Compile Include="ProjectInstaller.Designer.cs">
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
     </Compile>
+    <Compile Include="RedisManage.cs" />
     <Compile Include="TaskService.cs">
       <SubType>Component</SubType>
     </Compile>
